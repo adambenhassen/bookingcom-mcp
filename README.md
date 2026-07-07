@@ -58,17 +58,28 @@ go build -o bookingcom-mcp ./cmd/bookingcom-mcp
 
 ### Browser (camoufox)
 
-Scraping runs on [camoufox](https://camoufox.com), a stealth Firefox. Install it
-once (the Docker image bakes it in):
+Scraping runs on [camoufox](https://camoufox.com), a stealth Firefox. The Docker
+image bakes it in; **using the image is the supported path**. For a local install:
 
 ```sh
-uv tool install --force "camoufox[geoip]" --with "playwright==1.52.0" && camoufox fetch
+uv tool install --force \
+  "camoufox[geoip] @ git+https://github.com/daijro/camoufox.git@f342c20dd23736b210f4d5fa4d8b073ee877c9d6#subdirectory=pythonlib" \
+  --with "playwright==1.60.0" && camoufox fetch
 ```
 
-The `playwright` pin must match this module's playwright-go v0.5200.x — client and
-server versions must agree. camoufox runs Firefox headful, so a headless Linux host
-also needs an X server; install `xvfb` and the server auto-wraps camoufox in
-`xvfb-run` when no `DISPLAY` is set.
+The `playwright` pin must match this module's playwright-go v0.6000.x (driver
+1.60.0) — client and server versions must agree. camoufox is pinned to the
+Firefox 150 launcher that works with playwright 1.60 (the published 0.4.11 ships
+an older Firefox and cannot host 1.60).
+
+Playwright 1.60 removed the private `lib/browserServerImpl.js` that camoufox's
+launcher imports, so a small shim must be written into the playwright driver (see
+the `browserServerImpl.js` step in the [Dockerfile](Dockerfile)) before `camoufox
+server` will start — the image applies it automatically.
+
+camoufox runs Firefox headful, so a headless Linux host also needs an X server;
+install `xvfb` and the server auto-wraps camoufox in `xvfb-run` when no `DISPLAY`
+is set.
 
 ## Configuration
 
